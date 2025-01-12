@@ -20,9 +20,11 @@ import java.io.Reader
  *       classification: 15
  */
 class YamlStudentParser : YamlParser<Student> {
+
+    @Suppress("UNCHECKED_CAST")
     override fun parseObject(yaml: Reader): Student {
-        yaml.useLines { yaml ->
-            val lines = yaml
+        yaml.useLines { yamlSequence ->
+            val lines = yamlSequence
                 .filter { line -> line.isNotEmpty() }
                 .iterator()
             /*

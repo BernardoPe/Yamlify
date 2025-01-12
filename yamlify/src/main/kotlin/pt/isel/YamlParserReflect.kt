@@ -26,6 +26,8 @@ class YamlParserReflect<T : Any> private constructor(type: KClass<T>) : Abstract
         }
         return args
     }
+
+    @Suppress("UNCHECKED_CAST")
     private fun getTypeConverter(param: KParameter): (Any) -> Any {
         if (param.annotations.any { it is YamlConvert }) {
             val customParser = param.annotations.first { it is YamlConvert } as YamlConvert
@@ -54,6 +56,7 @@ class YamlParserReflect<T : Any> private constructor(type: KClass<T>) : Abstract
          * Creates a YamlParser for the given type using reflection if it does not already exist.
          * Keep it in an internal cache of YamlParserReflect instances.
          */
+        @Suppress("UNCHECKED_CAST")
         fun <T : Any> yamlParser(type: KClass<T>): AbstractYamlParser<T> {
             return yamlParsers.getOrPut(type) { YamlParserReflect(type) } as YamlParserReflect<T>
         }
@@ -67,10 +70,11 @@ class YamlParserReflect<T : Any> private constructor(type: KClass<T>) : Abstract
      * Creates a new instance of T through the first constructor
      * that has all the mandatory parameters in the map and optional parameters for the rest.
      */
+    @Suppress("UNCHECKED_CAST")
     override fun newInstance(args: Map<String, Any>): T {
         val props = mutableMapOf<KParameter, Any?>()
         if (simpleTypeInstance != null) {
-            return simpleTypeInstance!!(args[""]!!) as T
+            return simpleTypeInstance.invoke(args[""]!!) as T
         }
         args.keys.forEach { srcProp ->
             val constructorArg = constructorArgs[srcProp] ?: throw IllegalArgumentException("Unknown property $srcProp")
@@ -81,6 +85,7 @@ class YamlParserReflect<T : Any> private constructor(type: KClass<T>) : Abstract
         return constructor.callBy(props)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun castSimpleType(type: KClass<T>): ((Any) -> Any)? {
         return when (type) {
             String::class -> { value : String -> value }
@@ -100,6 +105,7 @@ class YamlParserReflect<T : Any> private constructor(type: KClass<T>) : Abstract
         } as ((Any) -> Any)?
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun getIterableValue(type: KType): (Any) -> Any {
         val simpleType = castSimpleType(type.arguments.first().type?.classifier as KClass<T>)
         if (simpleType != null) {

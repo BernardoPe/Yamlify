@@ -3,7 +3,6 @@ package pt.isel
 import org.cojen.maker.ClassMaker
 import org.cojen.maker.MethodMaker
 import org.cojen.maker.Variable
-import java.io.Reader
 import java.lang.reflect.Parameter
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -33,6 +32,7 @@ open class YamlParserCojen<T : Any>(
          * Creates a YamlParser for the given type using Cojen Maker if it does not already exist.
          * Keep it in an internal cache.
          */
+        @Suppress("UNCHECKED_CAST")
         fun <T : Any> yamlParser(
             type: KClass<T>,
             nrOfInitArgs: Int = type.constructors.first().parameters.size
@@ -114,7 +114,7 @@ open class YamlParserCojen<T : Any>(
 
             val value = args.invoke("get", name)
 
-            if (!it.hasDefaultValue(type.java as Class<*>)) {
+            if (!it.hasDefaultValue(type.java)) {
                 value.ifEq(null) {
                     newInstance.new_(IllegalArgumentException::class.java, "Missing parameter: ${it.name}")
                         .throw_()
@@ -166,15 +166,10 @@ open class YamlParserCojen<T : Any>(
 
     private fun castToIterable(newInstance: MethodMaker, value: Variable, type: Type): Variable? {
 
-        // Create a new list and set the type of the list
-        // e.g.: List<String>
-        val list = newInstance.`var`(List::class.java)
-            .set(value.cast(List::class.java))
+        val list = newInstance.`var`(List::class.java).set(value.cast(List::class.java))
 
-        // Create a new instance of the list
         val retList = newInstance.new_(ArrayList::class.java)
 
-        // check if the type is a wildcard type (e.g.: List<?>)
         if (type is WildcardType) {
             // get the type of the list
             // e.g.: String in a List<String>
@@ -224,11 +219,9 @@ open class YamlParserCojen<T : Any>(
     }
 
     private fun isSimpleType(type: Type): Boolean {
-        // check if it is a primitive type
         if ((type as Class<*>).isPrimitive) {
             return true
         }
-        // check if it is a boxed primitive type
         return when (type) {
             String::class.java -> return true
             Integer::class.java -> return true
@@ -260,7 +253,6 @@ open class YamlParserCojen<T : Any>(
             // create a new instance of the class
             val obj = newInstance.`var`(type).set(null)
             value.ifNe(null) {
-                // Create the parser for the type before creating an instance of it
                 val parser = YamlParserCojen.yamlParser((type as Class<*>).kotlin) as YamlParserCojen
                 val map = value.cast(Map::class.java)
                 obj.set(
