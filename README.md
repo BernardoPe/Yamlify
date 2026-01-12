@@ -4,7 +4,7 @@ Yamlify is a simplified YAML-to-object parsing library for the JVM (Kotlin) focu
 comparing two instantiation strategies: reflection and runtime bytecode generation. Both strategies share the same YAML
 front-end (text parsing) and differ only in how the final domain objects are instantiated.
 
-## Project structure1
+## Project structure
 
 This repository is a multi-module Gradle build. The `yamlify` module contains the core library. The `yamlify-bench`
 module contains JMH benchmarks used to compare parser strategies.
@@ -19,7 +19,7 @@ Object construction is constructor-oriented. The parser builds a map from YAML k
 supports nested objects and lists, and can handle Kotlin default parameters. The library supports mapping YAML keys to
 different constructor parameter names and supports custom value conversion via annotations.
 
-## Public API
+## API
 
 The public abstraction is the `YamlParser<T>` interface:
 
@@ -244,3 +244,4 @@ java -jar yamlify-bench/build/libs/yamlify-bench-jmh.jar -i 10 -wi 4 -f 1 -r 2 -
 
 The core module depends on `kotlin-reflect` and `org.cojen:cojen-maker`. The benchmark module applies the JMH Gradle
 plugin and depends on the core module.
+
